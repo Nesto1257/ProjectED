@@ -1,0 +1,52 @@
+[
+  {
+    "pergunta": "O que tem cidades, mas não tem casas; tem montanhas, mas não tem árvores; e tem água, mas não tem peixes?",
+    "opcoes": ["Um mapa", "Um livro", "Um computador"],
+    "respostaCorreta": "Um mapa"
+  },
+  {
+    "pergunta": "O que fica cada vez mais molhado ao secar?",
+    "opcoes": ["Uma toalha", "Uma esponja", "Um pano"],
+    "respostaCorreta": "Uma toalha"
+  },
+  {
+    "pergunta": "O que tem pescoço mas não tem cabeça?",
+    "opcoes": ["Uma garrafa", "Uma camisa", "Uma girafa"],
+    "respostaCorreta": "Uma garrafa"
+  },
+  {
+    "pergunta": "O que tem olhos mas não consegue ver?",
+    "opcoes": ["Uma batata", "Um cego", "Uma agulha"],
+    "respostaCorreta": "Uma batata"
+  },
+  {
+    "pergunta": "Quanto mais lhe tiras, maior fica. O que é?",
+    "opcoes": ["Um buraco", "Uma dívida", "Uma fila"],
+    "respostaCorreta": "Um buraco"
+  },
+  {
+    "pergunta": "O que sobe mas nunca desce?",
+    "opcoes": ["A idade", "O preço", "Uma escada"],
+    "respostaCorreta": "A idade"
+  },
+  {
+    "pergunta": "O que pertence a ti, mas os outros usam mais do que tu?",
+    "opcoes": ["O teu nome", "O teu dinheiro", "O teu carro"],
+    "respostaCorreta": "O teu nome"
+  },
+  {
+    "pergunta": "O que corre sem ter pernas?",
+    "opcoes": ["A água", "O tempo", "O vento"],
+    "respostaCorreta": "A água"
+  },
+  {
+    "pergunta": "O que tem dentes mas não morde?",
+    "opcoes": ["Um pente", "Uma serra", "Um garfo"],
+    "respostaCorreta": "Um pente"
+  },
+  {
+    "pergunta": "O que enche um quarto mas não ocupa espaço?",
+    "opcoes": ["A luz", "O ar", "O som"],
+    "respostaCorreta": "A luz"
+  }
+]

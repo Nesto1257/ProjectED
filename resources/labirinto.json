@@ -1,0 +1,232 @@
+{
+  "divisoes": [
+    {
+      "id": 0,
+      "nome": "Sala do Tesouro",
+      "tipo": "Centro"
+    },
+    {
+      "id": 1,
+      "nome": "Entrada Norte",
+      "tipo": "Entrada"
+    },
+    {
+      "id": 2,
+      "nome": "Entrada Sul",
+      "tipo": "Entrada"
+    },
+    {
+      "id": 3,
+      "nome": "Entrada Este",
+      "tipo": "Entrada"
+    },
+    {
+      "id": 4,
+      "nome": "Entrada Oeste",
+      "tipo": "Entrada"
+    },
+    {
+      "id": 5,
+      "nome": "Corredor Norte",
+      "tipo": "Simples"
+    },
+    {
+      "id": 6,
+      "nome": "Corredor Sul",
+      "tipo": "Simples"
+    },
+    {
+      "id": 7,
+      "nome": "Corredor Este",
+      "tipo": "Simples"
+    },
+    {
+      "id": 8,
+      "nome": "Corredor Oeste",
+      "tipo": "Simples"
+    },
+    {
+      "id": 9,
+      "nome": "Sala do Enigma Norte",
+      "tipo": "Enigma"
+    },
+    {
+      "id": 10,
+      "nome": "Sala do Enigma Sul",
+      "tipo": "Enigma"
+    },
+    {
+      "id": 11,
+      "nome": "Sala da Alavanca Este",
+      "tipo": "Alavanca"
+    },
+    {
+      "id": 12,
+      "nome": "Sala da Alavanca Oeste",
+      "tipo": "Alavanca"
+    },
+    {
+      "id": 13,
+      "nome": "Antecâmara Norte",
+      "tipo": "Simples"
+    },
+    {
+      "id": 14,
+      "nome": "Antecâmara Sul",
+      "tipo": "Simples"
+    },
+    {
+      "id": 15,
+      "nome": "Antecâmara Este",
+      "tipo": "Simples"
+    },
+    {
+      "id": 16,
+      "nome": "Antecâmara Oeste",
+      "tipo": "Simples"
+    }
+  ],
+  "corredores": [
+    {
+      "origem": 1,
+      "destino": 5,
+      "peso": 1.0
+    },
+    {
+      "origem": 5,
+      "destino": 9,
+      "peso": 1.0
+    },
+    {
+      "origem": 9,
+      "destino": 13,
+      "peso": 1.0
+    },
+    {
+      "origem": 13,
+      "destino": 0,
+      "peso": 1.0
+    },
+    {
+      "origem": 2,
+      "destino": 6,
+      "peso": 1.0
+    },
+    {
+      "origem": 6,
+      "destino": 10,
+      "peso": 1.0
+    },
+    {
+      "origem": 10,
+      "destino": 14,
+      "peso": 1.0
+    },
+    {
+      "origem": 14,
+      "destino": 0,
+      "peso": 1.0
+    },
+    {
+      "origem": 3,
+      "destino": 7,
+      "peso": 1.0
+    },
+    {
+      "origem": 7,
+      "destino": 11,
+      "peso": 1.0
+    },
+    {
+      "origem": 11,
+      "destino": 15,
+      "peso": 1.0
+    },
+    {
+      "origem": 15,
+      "destino": 0,
+      "peso": 1.0
+    },
+    {
+      "origem": 4,
+      "destino": 8,
+      "peso": 1.0
+    },
+    {
+      "origem": 8,
+      "destino": 12,
+      "peso": 1.0
+    },
+    {
+      "origem": 12,
+      "destino": 16,
+      "peso": 1.0
+    },
+    {
+      "origem": 16,
+      "destino": 0,
+      "peso": 1.0
+    },
+    {
+      "origem": 5,
+      "destino": 7,
+      "peso": 1.5
+    },
+    {
+      "origem": 7,
+      "destino": 6,
+      "peso": 1.5
+    },
+    {
+      "origem": 6,
+      "destino": 8,
+      "peso": 1.5
+    },
+    {
+      "origem": 8,
+      "destino": 5,
+      "peso": 1.5
+    },
+    {
+      "origem": 9,
+      "destino": 11,
+      "peso": 2.0
+    },
+    {
+      "origem": 11,
+      "destino": 10,
+      "peso": 2.0
+    },
+    {
+      "origem": 10,
+      "destino": 12,
+      "peso": 2.0
+    },
+    {
+      "origem": 12,
+      "destino": 9,
+      "peso": 2.0
+    },
+    {
+      "origem": 13,
+      "destino": 15,
+      "peso": 1.5
+    },
+    {
+      "origem": 15,
+      "destino": 14,
+      "peso": 1.5
+    },
+    {
+      "origem": 14,
+      "destino": 16,
+      "peso": 1.5
+    },
+    {
+      "origem": 16,
+      "destino": 13,
+      "peso": 1.5
+    }
+  ]
+}
+
