@@ -1,74 +1,47 @@
 package Eventos;
 
-import Labirinto.TipoDivisao;
 import Structures.ArrayUnorderedList;
 import java.util.Random;
 
 /**
- * Factory para criação de desafios.
- *
- * Padrão Factory Method:
- * - Encapsula a lógica de criação de objetos
- * - Facilita extensão com novos tipos de desafios
- * - Centraliza a criação para manutenção mais fácil
- * - Permite configuração flexível (ex: dificuldade)
+ * Fábrica para criação de desafios do jogo.
+ * Implementa o padrão Factory Method para encapsular a lógica de criação
+ * dos diferentes tipos de desafios.
+ * Tipos de desafios suportados:
+ * <ul>
+ *   <li>Desafio de Enigma - Perguntas com múltiplas opções</li>
+ *   <li>Desafio de Alavanca - Escolha entre duas opções</li>
+ * </ul>
  *
  * @author Grupo ED
  * @version 1.0
  */
 public class DesafioFactory {
 
+    /** Gerador de números aleatórios */
     private static final Random random = new Random();
+
+    /** Lista de questões disponíveis para os enigmas */
     private final ArrayUnorderedList<QuestaoEnigma> questoesDisponiveis;
 
     /**
-     * Construtor da factory de desafios.
+     * Construtor da fábrica de desafios.
      *
-     * @param questoes Lista de questões de enigma disponíveis
+     * @param questoes A lista de questões de enigma disponíveis
      */
     public DesafioFactory(ArrayUnorderedList<QuestaoEnigma> questoes) {
         this.questoesDisponiveis = questoes;
     }
 
     /**
-     * Cria um desafio baseado no tipo de divisão.
+     * Cria um desafio de enigma.
+     * Utiliza as questões disponíveis carregadas do ficheiro JSON.
+     * Se não existirem questões, cria uma questão padrão.
      *
-     * @param tipoDivisao O tipo da divisão que requer o desafio
-     * @return O desafio apropriado ou null se a divisão não requer desafio
-     */
-    public Desafio criarDesafio(TipoDivisao tipoDivisao) {
-        if (tipoDivisao == null || !tipoDivisao.temDesafio()) {
-            return null;
-        }
-
-        switch (tipoDivisao) {
-            case ENIGMA:
-                return criarDesafioEnigma();
-            case ALAVANCA:
-                return criarDesafioAlavanca();
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * Cria um desafio baseado na string do tipo (compatibilidade).
-     *
-     * @param tipoString String do tipo de divisão
-     * @return O desafio apropriado ou null
-     */
-    public Desafio criarDesafio(String tipoString) {
-        return criarDesafio(TipoDivisao.fromString(tipoString));
-    }
-
-    /**
-     * Cria um desafio de enigma com questões aleatórias.
-     *
-     * @return Novo DesafioEnigma
+     * @return Um novo desafio de enigma
      */
     public Desafio criarDesafioEnigma() {
         if (questoesDisponiveis == null || questoesDisponiveis.isEmpty()) {
-            // Criar questão padrão se não houver questões
             ArrayUnorderedList<QuestaoEnigma> questoesPadrao = new ArrayUnorderedList<>();
             questoesPadrao.addToRear(criarQuestaoPadrao());
             return new DesafioEnigma(questoesPadrao);
@@ -77,21 +50,23 @@ public class DesafioFactory {
     }
 
     /**
-     * Cria um desafio de alavanca com resposta aleatória.
+     * Cria um desafio de alavanca.
+     * A resposta correta é gerada aleatoriamente (1 ou 2).
      *
-     * @return Novo DesafioAlavanca
+     * @return Um novo desafio de alavanca
      */
     public Desafio criarDesafioAlavanca() {
-        int respostaCorreta = random.nextInt(2) + 1; // 1 ou 2
+        int respostaCorreta = random.nextInt(2) + 1;
         String descricao = "🔧 Duas alavancas misteriosas: 1 (Esquerda) ou 2 (Direita).\n" +
                           "   Apenas uma abre o caminho. Escolha com sabedoria!";
         return new DesafioAlavanca(respostaCorreta, descricao);
     }
 
     /**
-     * Cria uma questão padrão de fallback.
+     * Cria uma questão de enigma padrão.
+     * Utilizada como fallback quando não existem questões carregadas.
      *
-     * @return Questão padrão
+     * @return Uma questão padrão
      */
     private QuestaoEnigma criarQuestaoPadrao() {
         String[] opcoes = {"Sim", "Não"};

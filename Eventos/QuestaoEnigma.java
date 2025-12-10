@@ -1,39 +1,50 @@
-// Pacote: Eventos
-
 package Eventos;
 
 /**
- * Representa uma única pergunta de Enigma carregada do ficheiro JSON.
+ * Representa uma questão de enigma do jogo.
+ * Cada questão contém uma pergunta, várias opções de resposta
+ * e a resposta correta.
+ * As questões são carregadas a partir do ficheiro enigmas.json.
+ *
+ * @author Grupo ED
+ * @version 1.0
  */
 public class QuestaoEnigma {
+
+    /** O texto da pergunta */
     private String pergunta;
-    private String[] opcoes; // Possíveis respostas
+
+    /** As opções de resposta disponíveis */
+    private String[] opcoes;
+
+    /** A resposta correta */
     private String respostaCorreta;
 
+    /**
+     * Construtor da questão de enigma.
+     *
+     * @param pergunta O texto da pergunta
+     * @param opcoes As opções de resposta disponíveis
+     * @param respostaCorreta A resposta correta
+     */
     public QuestaoEnigma(String pergunta, String[] opcoes, String respostaCorreta) {
         this.pergunta = pergunta;
         this.opcoes = opcoes;
         this.respostaCorreta = respostaCorreta;
     }
 
-    // --- Getters ---
-
-    public String getPergunta() {
-        return pergunta;
-    }
-
-    public String[] getOpcoes() {
-        return opcoes;
-    }
-
     /**
      * Verifica se a resposta do jogador está correta.
      * Aceita tanto o número da opção (1, 2, 3...) quanto o texto da resposta.
+     * A comparação ignora diferenças entre maiúsculas e minúsculas.
+     *
+     * @param respostaJogador A resposta fornecida pelo jogador
+     * @return true se a resposta está correta, false caso contrário
      */
     public boolean verificarResposta(String respostaJogador) {
         String respostaTrim = respostaJogador.trim();
 
-        // Verificar se é o texto da resposta correta (ignora maiúsculas/minúsculas)
+        // Verificar se é o texto da resposta correta
         if (respostaTrim.equalsIgnoreCase(respostaCorreta.trim())) {
             return true;
         }
@@ -42,19 +53,24 @@ public class QuestaoEnigma {
         try {
             int numeroEscolhido = Integer.parseInt(respostaTrim);
 
-            // Verificar se o número é válido (1 a opcoes.length)
+            // Verificar se o número é válido
             if (numeroEscolhido >= 1 && numeroEscolhido <= opcoes.length) {
-                // Comparar a opção escolhida com a resposta correta
-                String opcaoEscolhida = opcoes[numeroEscolhido - 1]; // -1 porque array começa em 0
+                String opcaoEscolhida = opcoes[numeroEscolhido - 1];
                 return opcaoEscolhida.trim().equalsIgnoreCase(respostaCorreta.trim());
             }
         } catch (NumberFormatException e) {
-            // Não é um número, continuar para retornar false
+            // Não é um número
         }
 
         return false;
     }
 
+    /**
+     * Devolve uma representação textual da questão.
+     * Inclui a pergunta e todas as opções numeradas.
+     *
+     * @return A questão formatada para apresentação
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

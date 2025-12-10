@@ -1,37 +1,46 @@
-// Pacote: Labirinto
-
 package Labirinto;
 
 import Structures.*;
 import Exceptions.*;
 
 /**
- * Representa o Labirinto da Glória como um grafo (Network) de Divisões.
- * Esta classe modela a estrutura completa do labirinto, incluindo:
- * <ul>
- * <li>Divisões (vértices): salas, corredores, entradas e o tesouro</li>
- * <li>Corredores (arestas): conexões entre divisões com pesos</li>
- * <li>Pontos de entrada: locais onde os jogadores podem começar</li>
- * <li>Ponto central: sala do tesouro (objetivo do jogo)</li>
- * </ul>
+ * Representa o labirinto do jogo como um grafo ponderado de divisões.
+ * Utiliza a estrutura de dados Network (grafo ponderado não dirigido)
+ * para modelar as ligações entre divisões.
  *
- * O labirinto usa a estrutura de dados Network (grafo ponderado não-dirigido)
- * para representar as conexões entre divisões e permitir navegação.
+ * Estruturas de dados utilizadas:
+ * <ul>
+ *   <li>Network - Grafo ponderado para representar as ligações</li>
+ *   <li>LinkedBinarySearchTree - Índice para busca eficiente por ID</li>
+ *   <li>ArrayUnorderedList - Lista de adjacências para vizinhos</li>
+ * </ul>
  *
  * @author Grupo ED
  * @version 1.0
  */
 public class Labirinto {
+
+    /** Estrutura Network que armazena as divisões e ligações */
     private Network<Divisao> estrutura;
+
+    /** A divisão central onde está o tesouro */
     private Divisao pontoCentral;
-    private ArrayUnorderedList<Divisao> pontosEntrada; // Ou a sua ArrayUnorderedList
-    private LinkedBinarySearchTree<DivisaoIndexada> indiceDivisoes; // ✅ Índice BST para busca O(log n)
-    private ArrayUnorderedList<Divisao>[] listaAdjacencias; // ✅ Lista de adjacências para busca O(1) de vizinhos
-    private static final int CAPACIDADE_INICIAL = 100; // Capacidade inicial do array de adjacências
+
+    /** Lista de pontos de entrada do labirinto */
+    private ArrayUnorderedList<Divisao> pontosEntrada;
+
+    /** Índice BST para busca eficiente de divisões por ID */
+    private LinkedBinarySearchTree<DivisaoIndexada> indiceDivisoes;
+
+    /** Lista de adjacências indexada por ID da divisão */
+    private ArrayUnorderedList<Divisao>[] listaAdjacencias;
+
+    /** Capacidade inicial do array de adjacências */
+    private static final int CAPACIDADE_INICIAL = 100;
 
     /**
-     * Classe wrapper interna para indexação eficiente de divisões por ID.
-     * Permite busca O(log n) em vez de O(n) usando Binary Search Tree.
+     * Classe interna para indexação eficiente de divisões.
+     * Permite busca O(log n) utilizando a Binary Search Tree.
      */
     private static class DivisaoIndexada implements Comparable<DivisaoIndexada> {
         int id;
@@ -56,14 +65,17 @@ public class Labirinto {
         }
     }
 
+    /**
+     * Construtor do labirinto.
+     * Inicializa todas as estruturas de dados necessárias.
+     */
     @SuppressWarnings("unchecked")
     public Labirinto() {
-        // A rede deve ser inicializada com as Divisoes como vértices
         this.estrutura = new Network<Divisao>();
         this.pontosEntrada = new ArrayUnorderedList<>();
-        this.indiceDivisoes = new LinkedBinarySearchTree<>(); // ✅ Inicializar índice BST
+        this.indiceDivisoes = new LinkedBinarySearchTree<>();
 
-        // ✅ Inicializar lista de adjacências para busca rápida de vizinhos
+        // Inicializar a lista de adjacências
         this.listaAdjacencias = (ArrayUnorderedList<Divisao>[]) new ArrayUnorderedList[CAPACIDADE_INICIAL];
         for (int i = 0; i < CAPACIDADE_INICIAL; i++) {
             this.listaAdjacencias[i] = new ArrayUnorderedList<>();
@@ -71,26 +83,21 @@ public class Labirinto {
     }
 
     /**
-     * Busca uma divisão pelo seu ID usando índice BST.
-     * Complexidade: O(log n) em vez de O(n).
+     * Procura uma divisão pelo seu identificador.
+     * Utiliza o índice BST para busca eficiente O(log n).
      *
-     * @param id O ID da divisão a ser encontrada
-     * @return A divisão correspondente ou null se não encontrada
+     * @param id O identificador da divisão
+     * @return A divisão correspondente, ou null se não existir
      */
     public Divisao getDivisaoByID(int id) {
-        // ✅ Busca O(log n) usando BST como índice
         try {
             DivisaoIndexada chave = new DivisaoIndexada(id, null);
             DivisaoIndexada resultado = indiceDivisoes.find(chave);
             return resultado != null ? resultado.divisao : null;
         } catch (ElementNotFoundException e) {
-            // Elemento não encontrado no índice
             return null;
         } catch (Exception e) {
-            // Em caso de outro erro, fallback para busca linear
-            System.err.println("Erro ao buscar no índice BST, usando fallback: " + e.getMessage());
-
-            // Fallback: busca linear (apenas se índice falhar)
+            // Fallback para busca linear
             for (int i = 0; i < estrutura.size(); i++) {
                 try {
                     Divisao d = estrutura.getVertex(i);
@@ -107,45 +114,51 @@ public class Labirinto {
 
     /**
      * Adiciona uma nova divisão ao labirinto.
-     * A divisão é adicionada ao Network e ao índice BST para busca eficiente.
+     * A divisão é adicionada ao Network e ao índice BST.
+     * Se for uma divisão do tipo Centro, é definida como ponto central.
+     * Se for uma divisão do tipo Entrada, é adicionada à lista de entradas.
+     *
+     * @param divisao A divisão a adicionar
      */
     public void adicionarDivisao(Divisao divisao) {
         estrutura.addVertex(divisao);
 
-        // ✅ Adicionar ao índice BST - O(log n)
+        // Adicionar ao índice BST para busca eficiente
         indiceDivisoes.addElement(new DivisaoIndexada(divisao.getId(), divisao));
 
-        if (divisao.getTipo().equals(Divisao.TIPO_CENTRO)) {
+        TipoDivisao tipo = divisao.getTipoEnum();
+        if (tipo == TipoDivisao.CENTRO) {
             pontoCentral = divisao;
-        } else if (divisao.getTipo().equals(Divisao.TIPO_ENTRADA)) {
+        } else if (tipo == TipoDivisao.ENTRADA) {
             pontosEntrada.addToRear(divisao);
         }
     }
 
     /**
-     * Liga duas divisões através de um corredor com um peso específico.
-     * O peso será usado para determinar a chance de EventosAleatorios.
-     * Atualiza tanto o Network quanto a lista de adjacências para busca eficiente.
+     * Liga duas divisões através de um corredor.
+     * Atualiza tanto o Network quanto a lista de adjacências.
+     *
+     * @param div1 A primeira divisão
+     * @param div2 A segunda divisão
+     * @param peso O peso da ligação (distância/dificuldade)
      */
     public void ligarDivisoes(Divisao div1, Divisao div2, double peso) {
-        // O Network já trata as ligações simétricas na addEdge
         estrutura.addEdge(div1, div2, peso);
 
-        // ✅ Atualizar lista de adjacências (grafo não-dirigido, portanto bidirecional)
+        // Atualizar lista de adjacências (bidirecional)
         int id1 = div1.getId();
         int id2 = div2.getId();
 
-        // Expandir array se necessário
         expandirListaSeNecessario(Math.max(id1, id2));
 
-        // Adicionar às listas de adjacências (bidirecional)
         listaAdjacencias[id1].addToRear(div2);
         listaAdjacencias[id2].addToRear(div1);
     }
 
     /**
-     * Expande o array de listas de adjacências se o ID for maior que a capacidade atual.
-     * @param idNecessario O ID que precisa ser acomodado
+     * Expande o array de listas de adjacências se necessário.
+     *
+     * @param idNecessario O ID que precisa de ser acomodado
      */
     @SuppressWarnings("unchecked")
     private void expandirListaSeNecessario(int idNecessario) {
@@ -153,10 +166,8 @@ public class Labirinto {
             int novaCapacidade = Math.max(listaAdjacencias.length * 2, idNecessario + 10);
             ArrayUnorderedList<Divisao>[] novaLista = (ArrayUnorderedList<Divisao>[]) new ArrayUnorderedList[novaCapacidade];
 
-            // Copiar listas existentes
             System.arraycopy(listaAdjacencias, 0, novaLista, 0, listaAdjacencias.length);
 
-            // Inicializar novas posições
             for (int i = listaAdjacencias.length; i < novaCapacidade; i++) {
                 novaLista[i] = new ArrayUnorderedList<>();
             }
@@ -166,126 +177,59 @@ public class Labirinto {
     }
 
     /**
-     * Retorna uma lista com os vizinhos (Divisoes adjacentes) de uma Divisao.
-     * Complexidade: O(1) para acessar a lista + O(grau) para iterar vizinhos.
-     * Muito mais eficiente que O(n) anterior.
+     * Obtém a lista de divisões vizinhas de uma divisão.
+     * Utiliza a lista de adjacências para busca eficiente O(1).
      *
-     * @param divisao A divisão cujos vizinhos devem ser retornados
-     * @return Lista de divisões adjacentes
+     * @param divisao A divisão cujos vizinhos se pretende obter
+     * @return A lista de divisões adjacentes
      */
     public ArrayUnorderedList<Divisao> getVizinhos(Divisao divisao) {
-        // ✅ Busca O(1) usando lista de adjacências indexada por ID
         int id = divisao.getId();
 
-        // Verificar se o ID está dentro dos limites
         if (id >= 0 && id < listaAdjacencias.length) {
             return listaAdjacencias[id];
         }
 
-        // Fallback: se por algum motivo o ID estiver fora dos limites, retornar lista vazia
-        System.err.println("Aviso: ID " + id + " fora dos limites da lista de adjacências. Usando fallback.");
         return new ArrayUnorderedList<>();
     }
 
-    // --- Getters importantes para o MotorJogo ---
-
+    /**
+     * Obtém a divisão central (tesouro) do labirinto.
+     *
+     * @return A divisão central, ou null se não definida
+     */
     public Divisao getPontoCentral() {
         return pontoCentral;
     }
 
-    public Divisao getRandomPontoEntrada() {
-        if (pontosEntrada.isEmpty()) return null;
-        // Escolher aleatoriamente um ponto de entrada
-        int index = (int) (Math.random() * pontosEntrada.size());
-
-        // Percorrer a lista até ao índice desejado usando iterator
-        int contador = 0;
-        java.util.Iterator<Divisao> it = pontosEntrada.iterator();
-        while (it.hasNext()) {
-            Divisao divisao = it.next();
-            if (contador == index) {
-                return divisao;
-            }
-            contador++;
-        }
-        return null;
-    }
-
     /**
-     * Retorna a lista de todos os pontos de entrada disponíveis.
-     * @return ArrayUnorderedList com todas as entradas do labirinto
+     * Obtém a lista de pontos de entrada do labirinto.
+     *
+     * @return A lista de divisões de entrada
      */
     public ArrayUnorderedList<Divisao> getPontosEntrada() {
         return pontosEntrada;
     }
 
     /**
-     * Retorna uma representação visual do labirinto mostrando todas as divisões
-     * e suas conexões (corredores).
+     * Devolve uma representação textual com as estatísticas do labirinto.
+     *
+     * @return As estatísticas do labirinto formatadas
      */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("\n╔════════════════════════════════════════════════════════════╗\n");
-        sb.append("║              ESTRUTURA DO LABIRINTO DA GLÓRIA              ║\n");
+        sb.append("║              LABIRINTO DA GLÓRIA                           ║\n");
         sb.append("╚════════════════════════════════════════════════════════════╝\n\n");
 
-        // Listar todas as divisões
-        sb.append("📍 DIVISÕES NO LABIRINTO:\n");
-        sb.append("─────────────────────────────────────────────────────────────\n");
-
-        for (int i = 0; i < estrutura.size(); i++) {
-            try {
-                Divisao div = estrutura.getVertex(i);
-                if (div != null) {
-                    String icone = getIcone(div.getTipo());
-                    sb.append(String.format("  [%d] %s %-30s (%s)\n",
-                            i, icone, div.getNome(), div.getTipo()));
-                }
-            } catch (Exception e) {
-                // Ignorar
-            }
-        }
-
-        // Mostrar ponto central
-        sb.append("\n🏆 PONTO CENTRAL (Objetivo): ");
-        if (pontoCentral != null) {
-            sb.append(pontoCentral.getNome()).append("\n");
-        } else {
-            sb.append("(não definido)\n");
-        }
-
-        // Mostrar pontos de entrada
-        sb.append("🚪 PONTOS DE ENTRADA: ");
-        if (pontosEntrada.isEmpty()) {
-            sb.append("(nenhum)\n");
-        } else {
-            sb.append("\n");
-            java.util.Iterator<Divisao> it = pontosEntrada.iterator();
-            while (it.hasNext()) {
-                Divisao entrada = it.next();
-                sb.append("   - ").append(entrada.getNome()).append("\n");
-            }
-        }
-
-        // Listar todas as conexões (arestas)
-        sb.append("\n🔗 CORREDORES (Conexões):\n");
-        sb.append("─────────────────────────────────────────────────────────────\n");
-
+        // Contar corredores
         int numConexoes = 0;
         for (int i = 0; i < estrutura.size(); i++) {
             try {
-                Divisao origem = estrutura.getVertex(i);
-                if (origem != null) {
-                    for (int j = i + 1; j < estrutura.size(); j++) {
-                        if (estrutura.isEdge(i, j)) {
-                            Divisao destino = estrutura.getVertex(j);
-                            if (destino != null) {
-                                sb.append(String.format("  %s ←→ %s\n",
-                                        origem.getNome(), destino.getNome()));
-                                numConexoes++;
-                            }
-                        }
+                for (int j = i + 1; j < estrutura.size(); j++) {
+                    if (estrutura.isEdge(i, j)) {
+                        numConexoes++;
                     }
                 }
             } catch (Exception e) {
@@ -293,8 +237,12 @@ public class Labirinto {
             }
         }
 
-        if (numConexoes == 0) {
-            sb.append("  (nenhuma conexão estabelecida)\n");
+        // Mostrar objetivo
+        sb.append("🏆 OBJETIVO: ");
+        if (pontoCentral != null) {
+            sb.append(pontoCentral.getNome()).append("\n");
+        } else {
+            sb.append("(não definido)\n");
         }
 
         // Estatísticas
@@ -310,29 +258,19 @@ public class Labirinto {
     }
 
     /**
-     * Método auxiliar para obter ícone baseado no tipo de divisão
-     */
-    private String getIcone(String tipo) {
-        switch (tipo) {
-            case Divisao.TIPO_ENTRADA: return "🚪";
-            case Divisao.TIPO_CENTRO: return "🏆";
-            case Divisao.TIPO_ENIGMA: return "❓";
-            case Divisao.TIPO_ALAVANCA: return "🔧";
-            default: return "📦";
-        }
-    }
-
-    // --- Métodos auxiliares para exportação JSON ---
-
-    /**
-     * Retorna o tamanho do labirinto (número de divisões)
+     * Obtém o número total de divisões no labirinto.
+     *
+     * @return O número de divisões
      */
     public int getTamanho() {
         return estrutura.size();
     }
 
     /**
-     * Retorna uma divisão pelo índice no Network
+     * Obtém uma divisão pelo seu índice no Network.
+     *
+     * @param indice O índice da divisão
+     * @return A divisão correspondente, ou null se o índice for inválido
      */
     public Divisao getDivisaoPorIndice(int indice) {
         try {
@@ -343,59 +281,20 @@ public class Labirinto {
     }
 
     /**
-     * Verifica se existe conexão entre duas divisões pelos índices
-     */
-    public boolean existeConexao(int indice1, int indice2) {
-        return estrutura.isEdge(indice1, indice2);
-    }
-
-    /**
-     * Retorna o peso do corredor entre duas divisões
-     */
-    public double getPesoCorredor(int indice1, int indice2) {
-        return estrutura.getWeight(indice1, indice2);
-    }
-
-    /**
-     * Calcula o caminho mais curto entre duas divisões usando algoritmo de Dijkstra.
-     * Este método é usado pelos bots inteligentes para encontrar a rota mais rápida
-     * até o tesouro.
+     * Calcula o caminho mais curto entre duas divisões utilizando Dijkstra.
+     * Este método é utilizado pelos bots inteligentes para encontrar
+     * a rota mais rápida até ao tesouro.
      *
      * @param origem A divisão de origem
-     * @param destino A divisão de destino (geralmente o tesouro)
-     * @return Iterator com o caminho completo (incluindo origem e destino), ou null se não houver caminho
+     * @param destino A divisão de destino
+     * @return Iterador com o caminho completo, ou null se não existir caminho
      */
     public java.util.Iterator<Divisao> getCaminhoMaisCurto(Divisao origem, Divisao destino) {
         try {
-            // Usar o método iteratorShortestPath do Network (algoritmo de Dijkstra)
             return estrutura.iteratorShortestPath(origem, destino);
         } catch (Exception e) {
             System.out.println("⚠️ Erro ao calcular caminho mais curto: " + e.getMessage());
             return null;
         }
-    }
-
-    /**
-     * Calcula o peso (distância) do caminho mais curto entre duas divisões.
-     * Útil para comparar rotas alternativas.
-     *
-     * @param origem A divisão de origem
-     * @param destino A divisão de destino
-     * @return O peso total do caminho mais curto, ou Double.MAX_VALUE se não houver caminho
-     */
-    public double getPesoCaminhoMaisCurto(Divisao origem, Divisao destino) {
-        try {
-            return estrutura.shortestPathWeight(origem, destino);
-        } catch (Exception e) {
-            return Double.MAX_VALUE; // Sem caminho
-        }
-    }
-
-    /**
-     * Retorna a estrutura Network interna (para casos avançados).
-     * @return O Network que representa o labirinto
-     */
-    public Network<Divisao> getEstrutura() {
-        return estrutura;
     }
 }

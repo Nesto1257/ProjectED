@@ -6,42 +6,34 @@ import Structures.ArrayUnorderedList;
 import java.util.Iterator;
 
 /**
- * Implementa um Jogador controlado automaticamente (Bot/IA).
- * Esta classe simula um jogador automático que usa o algoritmo de Dijkstra
- * para encontrar o caminho mais curto até o tesouro, mas ainda respeita
- * desafios, eventos aleatórios e impedimentos do jogo.
+ * Representa um jogador controlado automaticamente por inteligência artificial.
+ * Esta classe implementa o modo automático do jogo, onde o bot toma decisões
+ * de movimento de forma autónoma.
  *
- * O bot possui estratégia inteligente:
- * - Usa Dijkstra (caminho mais curto) quando possível
- * - Adapta-se a eventos aleatórios e impedimentos
- * - Ainda precisa resolver enigmas e alavancas como jogadores humanos
+ * Estratégias disponíveis:
+ * <ul>
+ *   <li>Inteligente (Dijkstra) - Calcula o caminho mais curto até ao tesouro</li>
+ *   <li>Aleatória - Escolhe um vizinho de forma aleatória</li>
+ * </ul>
+ *
+ * O bot ainda precisa de resolver enigmas e alavancas, tal como
+ * um jogador humano, e está sujeito a eventos aleatórios.
  *
  * @author Grupo ED
  * @version 1.0
  */
 public class JogadorBot extends Jogador {
 
-    private boolean modoAleatorio; // Se true, joga aleatoriamente (modo simples)
+    /** Define se o bot utiliza estratégia aleatória ou inteligente */
+    private boolean modoAleatorio;
 
     /**
-     * Construtor do JogadorBot com estratégia inteligente (Dijkstra).
-     * Inicializa o bot com um nome e posição inicial.
-     * Por padrão, usa estratégia inteligente (Dijkstra).
+     * Construtor do jogador bot.
+     * Cria um jogador controlado por IA com a estratégia especificada.
      *
      * @param nome O nome do bot
-     * @param pontoInicial A divisão inicial onde o bot começa
-     */
-    public JogadorBot(String nome, Divisao pontoInicial) {
-        super(nome, pontoInicial);
-        this.modoAleatorio = false; // Modo inteligente por padrão
-    }
-
-    /**
-     * Construtor do JogadorBot com escolha de modo.
-     *
-     * @param nome O nome do bot
-     * @param pontoInicial A divisão inicial onde o bot começa
-     * @param modoAleatorio Se true, joga aleatoriamente; se false, usa Dijkstra
+     * @param pontoInicial A divisão onde o bot inicia o jogo
+     * @param modoAleatorio Se true, usa estratégia aleatória; se false, usa Dijkstra
      */
     public JogadorBot(String nome, Divisao pontoInicial, boolean modoAleatorio) {
         super(nome, pontoInicial);
@@ -50,33 +42,36 @@ public class JogadorBot extends Jogador {
 
     /**
      * Escolhe automaticamente o próximo movimento.
+     * Utiliza a estratégia configurada para determinar a melhor divisão
+     * para onde se mover.
      *
-     * ESTRATÉGIA INTELIGENTE (Dijkstra):
-     * - Calcula o caminho mais curto até o tesouro
-     * - Escolhe o próximo passo nesse caminho
-     * - Se não conseguir calcular, escolhe aleatoriamente
-     *
-     * ESTRATÉGIA ALEATÓRIA:
-     * - Escolhe um vizinho aleatório
-     *
-     * @param labirinto O labirinto onde o bot se encontra
-     * @return A Divisao escolhida, ou null se não houver vizinhos disponíveis
+     * @param labirinto O labirinto onde o jogo decorre
+     * @return A divisão escolhida, ou null se não houver saídas disponíveis
      */
     @Override
     public Divisao escolherMovimento(Labirinto labirinto) {
-        System.out.println("------------------------------------");
-        System.out.println("🤖 Turno de " + getNome() + " (Bot). Posição atual: " + getPosicaoAtual().getNome());
+        // Obter as divisões vizinhas
+        ArrayUnorderedList<Divisao> todosVizinhos = labirinto.getVizinhos(getPosicaoAtual());
 
-        ArrayUnorderedList<Divisao> vizinhos = labirinto.getVizinhos(getPosicaoAtual());
+        // Filtrar a posição atual da lista de vizinhos
+        ArrayUnorderedList<Divisao> vizinhos = new ArrayUnorderedList<>();
+        Divisao posicaoAtual = getPosicaoAtual();
+        Iterator<Divisao> itFiltro = todosVizinhos.iterator();
+        while (itFiltro.hasNext()) {
+            Divisao d = itFiltro.next();
+            if (!d.equals(posicaoAtual)) {
+                vizinhos.addToRear(d);
+            }
+        }
 
         if (vizinhos.isEmpty()) {
             System.out.println(getNome() + " está encurralado.");
             return null;
         }
 
-        Divisao escolhida = null;
+        Divisao escolhida;
 
-        // Escolher estratégia baseada no modo
+        // Selecionar a estratégia de movimento
         if (modoAleatorio) {
             escolhida = escolherAleatorio(vizinhos);
         } else {
@@ -90,10 +85,11 @@ public class JogadorBot extends Jogador {
     }
 
     /**
-     * Escolhe um vizinho aleatoriamente (estratégia simples).
+     * Escolhe um vizinho de forma aleatória.
+     * Esta é a estratégia simples que não considera a distância ao objetivo.
      *
      * @param vizinhos Lista de divisões vizinhas disponíveis
-     * @return Divisão escolhida aleatoriamente
+     * @return A divisão escolhida aleatoriamente
      */
     private Divisao escolherAleatorio(ArrayUnorderedList<Divisao> vizinhos) {
         int indexAleatorio = (int) (Math.random() * vizinhos.size());
@@ -103,7 +99,6 @@ public class JogadorBot extends Jogador {
         while (it.hasNext()) {
             Divisao divisao = it.next();
             if (contador == indexAleatorio) {
-                System.out.println("   💭 Estratégia: Aleatória");
                 return divisao;
             }
             contador++;
@@ -112,49 +107,50 @@ public class JogadorBot extends Jogador {
     }
 
     /**
-     * Escolhe o próximo movimento usando algoritmo de Dijkstra.
-     * Calcula o caminho mais curto até o tesouro e retorna o próximo passo.
-     * Se não conseguir calcular (erro ou sem caminho), escolhe aleatoriamente.
+     * Escolhe o próximo movimento utilizando o algoritmo de Dijkstra.
+     * Calcula o caminho mais curto até ao tesouro e devolve o próximo
+     * passo nesse caminho.
+     * Se não for possível calcular o caminho (erro ou sem caminho válido),
+     * recorre à estratégia aleatória.
      *
-     * @param labirinto O labirinto completo (Network)
+     * @param labirinto O labirinto completo
      * @param vizinhos Lista de divisões vizinhas disponíveis
-     * @return Próxima divisão no caminho mais curto, ou aleatória se falhar
+     * @return O próximo passo no caminho mais curto, ou escolha aleatória se falhar
      */
     private Divisao escolherComDijkstra(Labirinto labirinto, ArrayUnorderedList<Divisao> vizinhos) {
         try {
             Divisao tesouro = labirinto.getPontoCentral();
 
             if (tesouro == null) {
-                System.out.println("   ⚠️ Tesouro não encontrado! Usando estratégia aleatória.");
+                System.out.println("   ⚠️ Tesouro não encontrado! A usar estratégia aleatória.");
                 return escolherAleatorio(vizinhos);
             }
 
-            // Se já está no tesouro, fica parado (não deveria acontecer)
+            // Verificar se já está no tesouro
             if (getPosicaoAtual().equals(tesouro)) {
                 return getPosicaoAtual();
             }
 
-            // Obter o caminho mais curto usando Dijkstra (da estrutura Network)
+            // Obter o caminho mais curto utilizando Dijkstra
             Iterator<Divisao> caminhoIterator = labirinto.getCaminhoMaisCurto(getPosicaoAtual(), tesouro);
 
             if (caminhoIterator == null || !caminhoIterator.hasNext()) {
-                System.out.println("   ⚠️ Sem caminho até o tesouro! Usando estratégia aleatória.");
+                System.out.println("   ⚠️ Sem caminho até ao tesouro! A usar estratégia aleatória.");
                 return escolherAleatorio(vizinhos);
             }
 
-            // O iterator retorna o caminho completo: [posição atual, próximo, ..., tesouro]
-            // Precisamos pegar o SEGUNDO elemento (próximo passo)
-
-            Divisao primeiraDiv = caminhoIterator.next(); // Posição atual
+            // O iterador devolve o caminho completo: [posição atual, próximo, ..., tesouro]
+            // Precisamos do segundo elemento (próximo passo)
+            caminhoIterator.next();
 
             if (!caminhoIterator.hasNext()) {
-                // Só tem uma divisão no caminho (já está no destino)
+                // Só existe uma divisão no caminho (já está no destino)
                 return getPosicaoAtual();
             }
 
-            Divisao proximoPasso = caminhoIterator.next(); // PRÓXIMO passo no caminho
+            Divisao proximoPasso = caminhoIterator.next();
 
-            // Verificar se o próximo passo está nos vizinhos disponíveis
+            // Verificar se o próximo passo está disponível nos vizinhos
             boolean vizinhoValido = false;
             Iterator<Divisao> itVizinhos = vizinhos.iterator();
             while (itVizinhos.hasNext()) {
@@ -165,37 +161,16 @@ public class JogadorBot extends Jogador {
             }
 
             if (vizinhoValido) {
-                System.out.println("   🧠 Estratégia: Dijkstra (caminho mais curto)");
-                System.out.println("   🎯 Objetivo: " + tesouro.getNome());
                 return proximoPasso;
             } else {
-                System.out.println("   ⚠️ Próximo passo não é vizinho direto! Usando aleatório.");
+                System.out.println("   ⚠️ Próximo passo não é válido!");
                 return escolherAleatorio(vizinhos);
             }
 
         } catch (Exception e) {
-            // Se houver qualquer erro ao calcular Dijkstra, usa estratégia aleatória
+            // Em caso de erro, utilizar estratégia aleatória
             System.out.println("   ⚠️ Erro ao calcular caminho: " + e.getMessage());
-            System.out.println("   💭 Usando estratégia aleatória como fallback.");
             return escolherAleatorio(vizinhos);
         }
-    }
-
-    /**
-     * Define o modo de jogo do bot.
-     *
-     * @param modoAleatorio true para jogar aleatoriamente, false para usar Dijkstra
-     */
-    public void setModoAleatorio(boolean modoAleatorio) {
-        this.modoAleatorio = modoAleatorio;
-    }
-
-    /**
-     * Retorna se o bot está em modo aleatório.
-     *
-     * @return true se joga aleatoriamente, false se usa estratégia inteligente
-     */
-    public boolean isModoAleatorio() {
-        return modoAleatorio;
     }
 }

@@ -4,70 +4,94 @@ import Labirinto.*;
 import Structures.ArrayUnorderedList;
 
 /**
- * Classe base abstrata para todos os participantes do jogo.
- * Modela o estado e as ações fundamentais do jogador.
+ * Classe abstrata que representa um participante no jogo Labirinto da Glória.
+ * Define o estado e comportamentos fundamentais que são comuns a todos os tipos
+ * de jogadores, sejam humanos ou controlados por computador.
+ *
+ * Esta classe mantém informação sobre:
+ * <ul>
+ *   <li>Posição atual e histórico de movimentos</li>
+ *   <li>Jogadas extra e impedimentos</li>
+ *   <li>Obstáculos ultrapassados e efeitos aplicados</li>
+ * </ul>
+ *
+ * @author Grupo ED
+ * @version 1.0
  */
 public abstract class Jogador {
-    private String nome;
-    private Divisao posicaoAtual;
-    private int jogadasExtra; // Ganhos/Perdas de jogadas
-    private int turnosImpedido; // Ficar impedido de jogar
-    private Divisao ultimaPosicaoEstavel; // Para gerir o recuo (recoil)
-    private Divisao limiteRecuo; // Limite de recuo após troca de posição
 
-    // Rastreamento de progresso
-    private ArrayUnorderedList<Divisao> divisoesVisitadas; // Histórico de divisões visitadas
-    private ArrayUnorderedList<String> obstaculosUltrapassados; // Enigmas e alavancas resolvidos
-    private ArrayUnorderedList<String> efeitosAplicados; // Efeitos de eventos aleatórios recebidos
-    private int totalMovimentos; // Contador de movimentos realizados
+    /** Nome do jogador */
+    private String nome;
+
+    /** Divisão onde o jogador se encontra atualmente */
+    private Divisao posicaoAtual;
+
+    /** Número de jogadas extra disponíveis */
+    private int jogadasExtra;
+
+    /** Número de turnos que o jogador está impedido de jogar */
+    private int turnosImpedido;
+
+
+    /** Histórico de divisões visitadas pelo jogador */
+    private ArrayUnorderedList<Divisao> divisoesVisitadas;
+
+    /** Lista de obstáculos ultrapassados (enigmas e alavancas) */
+    private ArrayUnorderedList<String> obstaculosUltrapassados;
+
+    /** Lista de efeitos de eventos aleatórios aplicados */
+    private ArrayUnorderedList<String> efeitosAplicados;
+
+    /** Contador total de movimentos realizados */
+    private int totalMovimentos;
 
     /**
-     * Construtor do Jogador.
-     * Inicializa um novo jogador com nome e posição inicial.
+     * Construtor do jogador.
+     * Inicializa um novo jogador com o nome e posição inicial especificados.
      *
      * @param nome O nome do jogador
-     * @param pontoInicial A divisão onde o jogador inicia o jogo
+     * @param pontoInicial A divisão onde o jogador começa o jogo
      */
     public Jogador(String nome, Divisao pontoInicial) {
         this.nome = nome;
         this.posicaoAtual = pontoInicial;
         this.jogadasExtra = 0;
         this.turnosImpedido = 0;
-        this.ultimaPosicaoEstavel = pontoInicial;
-        this.limiteRecuo = null; // Sem limite inicialmente
 
-        // Inicializar rastreamento de progresso
+        // Inicializar as listas de rastreamento
         this.divisoesVisitadas = new ArrayUnorderedList<>();
         this.obstaculosUltrapassados = new ArrayUnorderedList<>();
         this.efeitosAplicados = new ArrayUnorderedList<>();
         this.totalMovimentos = 0;
 
-        // Adicionar posição inicial ao histórico
+        // Adicionar a posição inicial ao histórico
         this.divisoesVisitadas.addToRear(pontoInicial);
     }
 
     /**
-     * Define o processo de decisão do movimento, que varia consoante seja Humano ou Bot.
-     * @param labirinto O labirinto atual.
-     * @return A Divisao que o jogador escolheu para se mover.
+     * Método abstrato que define o processo de decisão do movimento.
+     * A implementação varia consoante o tipo de jogador (humano ou bot).
+     *
+     * @param labirinto O labirinto onde o jogo decorre
+     * @return A divisão escolhida para o próximo movimento
      */
     public abstract Divisao escolherMovimento(Labirinto labirinto);
 
     /**
-     * Atualiza a posição do jogador.
+     * Move o jogador para uma nova divisão.
+     * Atualiza a posição atual e o histórico de movimentos.
+     *
+     * @param novaPosicao A divisão de destino
      */
     public void moverPara(Divisao novaPosicao) {
         this.posicaoAtual = novaPosicao;
-        // A posição estável é atualizada após um movimento bem-sucedido
-        this.ultimaPosicaoEstavel = novaPosicao;
-
-        // Adicionar ao histórico de divisões visitadas
         this.divisoesVisitadas.addToRear(novaPosicao);
         this.totalMovimentos++;
     }
 
     /**
-     * Registra que um obstáculo foi ultrapassado.
+     * Regista que um obstáculo foi ultrapassado com sucesso.
+     *
      * @param descricaoObstaculo Descrição do obstáculo (ex: "Enigma na Sala Norte")
      */
     public void registrarObstaculoUltrapassado(String descricaoObstaculo) {
@@ -75,101 +99,102 @@ public abstract class Jogador {
     }
 
     /**
-     * Registra um efeito aplicado ao jogador.
+     * Regista um efeito aplicado ao jogador através de um evento aleatório.
+     *
      * @param descricaoEfeito Descrição do efeito (ex: "Ganhou jogada extra")
      */
     public void registrarEfeito(String descricaoEfeito) {
         this.efeitosAplicados.addToRear(descricaoEfeito);
     }
 
-    // --- Getters e Setters ---
-
+    /**
+     * Obtém o nome do jogador.
+     *
+     * @return O nome do jogador
+     */
     public String getNome() {
         return nome;
     }
 
+    /**
+     * Obtém a posição atual do jogador.
+     *
+     * @return A divisão onde o jogador se encontra
+     */
     public Divisao getPosicaoAtual() {
         return posicaoAtual;
     }
 
+    /**
+     * Obtém o número de turnos que o jogador está impedido.
+     *
+     * @return Número de turnos de impedimento restantes
+     */
     public int getTurnosImpedido() {
         return turnosImpedido;
     }
 
+    /**
+     * Define o número de turnos de impedimento.
+     *
+     * @param turnos O número de turnos de impedimento
+     */
     public void setTurnosImpedido(int turnos) {
         this.turnosImpedido = turnos;
     }
 
+    /**
+     * Obtém o número de jogadas extra.
+     *
+     * @return Número de jogadas extra
+     */
     public int getJogadasExtra() {
         return jogadasExtra;
     }
 
+    /**
+     * Adiciona ou remove jogadas extra.
+     *
+     * @param num Número de jogadas a adicionar (positivo) ou remover (negativo)
+     */
     public void adicionarJogadasExtra(int num) {
         this.jogadasExtra += num;
     }
 
-    public Divisao getUltimaPosicaoEstavel() {
-        return ultimaPosicaoEstavel;
-    }
 
-    public void setUltimaPosicaoEstavel(Divisao ultimaPosicaoEstavel) {
-        this.ultimaPosicaoEstavel = ultimaPosicaoEstavel;
-    }
-
-    public Divisao getLimiteRecuo() {
-        return limiteRecuo;
-    }
-
-    public void setLimiteRecuo(Divisao limiteRecuo) {
-        this.limiteRecuo = limiteRecuo;
-    }
-
+    /**
+     * Obtém o histórico de divisões visitadas.
+     *
+     * @return Lista com todas as divisões visitadas
+     */
     public ArrayUnorderedList<Divisao> getDivisoesVisitadas() {
         return divisoesVisitadas;
     }
 
+    /**
+     * Obtém a lista de obstáculos ultrapassados.
+     *
+     * @return Lista com descrições dos obstáculos ultrapassados
+     */
     public ArrayUnorderedList<String> getObstaculosUltrapassados() {
         return obstaculosUltrapassados;
     }
 
+    /**
+     * Obtém a lista de efeitos aplicados.
+     *
+     * @return Lista com descrições dos efeitos aplicados
+     */
     public ArrayUnorderedList<String> getEfeitosAplicados() {
         return efeitosAplicados;
     }
 
+    /**
+     * Obtém o número total de movimentos realizados.
+     *
+     * @return O total de movimentos
+     */
     public int getTotalMovimentos() {
         return totalMovimentos;
-    }
-
-    /**
-     * Retorna um resumo do estado atual do jogador.
-     * @return String com informações do jogador
-     */
-    public String getResumoEstado() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("👤 ").append(nome).append("\n");
-        sb.append("   📍 Posição: ").append(posicaoAtual.getNome()).append("\n");
-        sb.append("   🚶 Movimentos: ").append(totalMovimentos).append("\n");
-        sb.append("   ✅ Obstáculos ultrapassados: ").append(obstaculosUltrapassados.size()).append("\n");
-
-        if (turnosImpedido > 0) {
-            sb.append("   ⏸️  IMPEDIDO (").append(turnosImpedido).append(" turnos restantes)\n");
-        }
-
-        if (jogadasExtra > 0) {
-            sb.append("   ⭐ Jogadas extra: ").append(jogadasExtra).append("\n");
-        }
-
-        if (!efeitosAplicados.isEmpty()) {
-            sb.append("   🎲 Último efeito: ");
-            // Pegar o último efeito
-            java.util.Iterator<String> it = efeitosAplicados.iterator();
-            String ultimoEfeito = null;
-            while (it.hasNext()) {
-                ultimoEfeito = it.next();
-            }
-            sb.append(ultimoEfeito).append("\n");
-        }
-
-        return sb.toString();
     }
 }
