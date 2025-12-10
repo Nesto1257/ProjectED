@@ -1,139 +1,104 @@
-// Pacote: Jogo
-
 package Jogo;
 
 import Labirinto.*;
 import Structures.ArrayUnorderedList;
 
 /**
- * Motor central do jogo, responsável por coordenar o fluxo principal.
- * Esta classe coordena todo o jogo do Labirinto da Glória através de gestores especializados:
+ * Motor central do jogo Labirinto da Glória.
+ * Esta classe é responsável por coordenar todo o fluxo do jogo, delegando
+ * responsabilidades específicas a gestores especializados.
+ *
+ * Gestores utilizados:
  * <ul>
- * <li>TurnManager: Gestão de turnos e fila de jogadores</li>
- * <li>EventManager: Aplicação de eventos aleatórios</li>
- * <li>ChallengeManager: Resolução de desafios (enigmas e alavancas)</li>
+ *   <li>{@link TurnManager} - Gestão de turnos e fila circular de jogadores</li>
+ *   <li>{@link EventManager} - Aplicação de eventos aleatórios nos corredores</li>
+ *   <li>{@link ChallengeManager} - Resolução de desafios (enigmas e alavancas)</li>
  * </ul>
  *
- * Princípios aplicados:
- * - Single Responsibility Principle (SRP)
- * - Separation of Concerns
- * - Delegation Pattern
+ * Padrões de desenho aplicados:
+ * <ul>
+ *   <li>Single Responsibility Principle (SRP) - cada gestor tem uma responsabilidade</li>
+ *   <li>Delegation Pattern - delega tarefas aos gestores especializados</li>
+ * </ul>
  *
  * @author Grupo ED
- * @version 2.0 - Refatorado para melhor coesão
+ * @version 2.0
  */
 public class GameEngine {
+
+    /** O labirinto onde o jogo decorre */
     private Labirinto labirinto;
+
+    /** Gestor responsável pelos turnos dos jogadores */
     private TurnManager turnManager;
+
+    /** Gestor responsável pelos eventos aleatórios */
     private EventManager eventManager;
+
+    /** Gestor responsável pelos desafios */
     private ChallengeManager challengeManager;
+
+    /** Indica se o jogo terminou */
     private boolean jogoTerminado;
+
+    /** O jogador vencedor, ou null se ainda não houver */
     private Jogador vencedor;
+
+    /** Relatório da partida para exportação */
     private RelatorioPartida relatorio;
-    private EstadoJogo estadoAtual;
-    private ArrayUnorderedList<GameObserver> observers;
+
+    /** Janela de estatísticas do jogo */
+    private EstatisticasJogo estatisticas;
+
+    /** Lista de todos os jogadores */
+    private ArrayUnorderedList<Jogador> jogadores;
+
+    /** Indica se o jogo está em modo automático (bots) */
+    private boolean modoAutomatico;
+
+    /** Delay entre turnos em modo automático (milissegundos) */
+    private static final int DELAY_MODO_AUTOMATICO = 1500;
 
     /**
-     * Construtor do GameEngine.
-     * Inicializa o motor com o labirinto e lista de jogadores.
-     * Cria os gestores especializados para turnos, eventos e desafios.
+     * Construtor do motor de jogo.
+     * Inicializa todos os componentes necessários para o funcionamento do jogo,
+     * incluindo os gestores especializados e o relatório da partida.
      *
-     * @param labirinto O labirinto onde o jogo decorre
-     * @param jogadores Lista de jogadores que vão participar no jogo
+     * @param labirinto O labirinto onde o jogo irá decorrer
+     * @param jogadores A lista de jogadores participantes
      */
     public GameEngine(Labirinto labirinto, ArrayUnorderedList<Jogador> jogadores) {
         this.labirinto = labirinto;
+        this.jogadores = jogadores;
         this.jogoTerminado = false;
         this.vencedor = null;
         this.relatorio = new RelatorioPartida();
-        this.estadoAtual = EstadoJogo.NAO_INICIADO;
-        this.observers = new ArrayUnorderedList<>();
 
-        // Inicializar gestores especializados
+        // Detetar se está em modo automático (primeiro jogador é bot)
+        this.modoAutomatico = jogadores.first() instanceof JogadorBot;
+
+        // Inicializar os gestores especializados
         this.turnManager = new TurnManager(jogadores);
         this.eventManager = new EventManager(jogadores);
         this.challengeManager = new ChallengeManager();
 
-        // Registrar início da partida
+        // Criar janela de estatísticas
+        this.estatisticas = new EstatisticasJogo(jogadores);
+
+        // Registar o início da partida no relatório
         relatorio.registrarInicio();
     }
 
-    // ===== PADRÃO OBSERVER =====
-
     /**
-     * Adiciona um observer para receber notificações de eventos do jogo.
-     *
-     * @param observer O observer a adicionar
-     */
-    public void addObserver(GameObserver observer) {
-        if (observer != null) {
-            observers.addToRear(observer);
-        }
-    }
-
-    /**
-     * Remove um observer da lista.
-     *
-     * @param observer O observer a remover
-     */
-    public void removeObserver(GameObserver observer) {
-        try {
-            observers.remove(observer);
-        } catch (Exception e) {
-            // Observer não encontrado, ignorar
-        }
-    }
-
-    /**
-     * Notifica todos os observers sobre o início de um turno.
-     */
-    private void notifyTurnoIniciado(Jogador jogador) {
-        java.util.Iterator<GameObserver> it = observers.iterator();
-        while (it.hasNext()) {
-            it.next().onTurnoIniciado(jogador, turnManager.getContadorTurnos());
-        }
-    }
-
-    /**
-     * Notifica todos os observers sobre um movimento.
-     */
-    private void notifyMovimento(Jogador jogador, Divisao origem, Divisao destino) {
-        java.util.Iterator<GameObserver> it = observers.iterator();
-        while (it.hasNext()) {
-            it.next().onMovimento(jogador, origem, destino);
-        }
-    }
-
-    /**
-     * Notifica todos os observers sobre o fim do jogo.
-     */
-    private void notifyJogoTerminado() {
-        java.util.Iterator<GameObserver> it = observers.iterator();
-        while (it.hasNext()) {
-            it.next().onJogoTerminado(vencedor, turnManager.getContadorTurnos());
-        }
-    }
-
-    // ===== ESTADO DO JOGO =====
-
-    /**
-     * Obtém o estado atual do jogo.
-     *
-     * @return EstadoJogo atual
-     */
-    public EstadoJogo getEstadoAtual() {
-        return estadoAtual;
-    }
-
-    /**
-     * Inicia o loop principal do jogo.
+     * Inicia o ciclo principal do jogo.
+     * Este método executa continuamente até que um jogador atinja
+     * o centro do labirinto e conquiste o tesouro.
      */
     public void iniciarJogo() {
-        estadoAtual = EstadoJogo.EM_CURSO;
         System.out.println("--- Jogo Iniciado: Labirinto da Glória ---");
 
         while (!jogoTerminado) {
-            // Obter próximo jogador
+            // Obter o próximo jogador da fila de turnos
             Jogador jogadorAtual = turnManager.obterProximoJogador();
 
             if (jogadorAtual == null) {
@@ -142,54 +107,77 @@ public class GameEngine {
             }
 
             processarTurno(jogadorAtual);
+
+            // Adicionar delay em modo automático para visualização
+            if (modoAutomatico && !jogoTerminado) {
+                try {
+                    Thread.sleep(DELAY_MODO_AUTOMATICO);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
 
         exibirResultadoFinal();
     }
 
     /**
-     * Exibe o resultado final e gera relatório.
+     * Apresenta o resultado final do jogo e gera o relatório.
+     * Mostra o vencedor e as estatísticas da partida.
      */
     private void exibirResultadoFinal() {
         if (vencedor != null) {
             System.out.println("\n╔══════════════════════════════════════════════════════╗");
-            System.out.println("║                🏆 VITÓRIA! 🏆                       ║");
+            System.out.println("║                  🏆 VITÓRIA! 🏆                      ║");
+            System.out.println("╠══════════════════════════════════════════════════════╣");
+            System.out.println("║  🎉 " + String.format("%-49s", vencedor.getNome() + " conquistou o tesouro!") + "║");
+            System.out.println("║  📊 " + String.format("%-49s", "Total de turnos: " + turnManager.getContadorTurnos()) + "║");
             System.out.println("╚══════════════════════════════════════════════════════╝");
-            System.out.println("\n🎉 " + vencedor.getNome() + " alcançou o centro e conquistou o tesouro!");
-            System.out.println("🏆 Parabéns pela vitória épica!");
-            System.out.println("📊 Total de turnos jogados: " + turnManager.getContadorTurnos());
 
-            // Gerar relatório final em JSON
+            // Gerar o relatório final em formato JSON
             gerarRelatorioFinal();
+
+            // Fechar a janela de estatísticas
+            estatisticas.fechar();
         }
     }
 
     /**
      * Processa o turno de um jogador.
-     * Delega responsabilidades aos gestores especializados.
+     * Executa a seguinte sequência:
+     * <ol>
+     *   <li>Verifica se o jogador está impedido de jogar</li>
+     *   <li>Processa desafios pendentes na divisão atual</li>
+     *   <li>Permite ao jogador escolher o seu movimento</li>
+     *   <li>Aplica eventos aleatórios no corredor</li>
+     *   <li>Move o jogador para a nova divisão</li>
+     *   <li>Verifica a condição de vitória</li>
+     *   <li>Processa jogadas extra, se existirem</li>
+     * </ol>
      *
-     * @param jogador O jogador do turno atual
+     * @param jogador O jogador cujo turno está a ser processado
      */
     private void processarTurno(Jogador jogador) {
-        // Notificar observers do início do turno
-        notifyTurnoIniciado(jogador);
-
-        // Exibir cabeçalho do turno
+        // Mostrar o cabeçalho do turno
         turnManager.exibirCabecalhoTurno(jogador);
 
-        // 1. Verificar impedimentos
+        // Atualizar estatísticas e destacar jogador atual
+        estatisticas.destacarJogadorAtual(jogador, jogadores);
+        estatisticas.atualizarEstatisticas(jogadores, turnManager.getContadorTurnos());
+
+        // Verificar se o jogador está impedido de jogar
         if (turnManager.processarImpedimento(jogador)) {
-            return; // Jogador impedido, pula o turno
+            return;
         }
 
         Divisao divisaoAtual = jogador.getPosicaoAtual();
 
-        // 2. Processar desafios pendentes
+        // Processar desafios pendentes na divisão atual
         if (!challengeManager.processarDesafio(jogador, divisaoAtual)) {
-            return; // Desafio falhou, termina o turno
+            return;
         }
 
-        // 3. Escolha do movimento
+        // Obter a escolha de movimento do jogador
         Divisao divisaoDestino = jogador.escolherMovimento(labirinto);
 
         if (divisaoDestino == null) {
@@ -197,72 +185,67 @@ public class GameEngine {
             return;
         }
 
-        // 4. Aplicar eventos aleatórios
+        // Aplicar eventos aleatórios durante a travessia do corredor
         boolean movimentoCancelado = eventManager.aplicarEventoAleatorio(jogador, divisaoAtual, divisaoDestino);
 
-        if (movimentoCancelado) {
-            System.out.println("⚠️  O movimento planejado foi cancelado pelo evento!");
-        }
-
-        // 5. Mover o jogador (apenas se não foi cancelado)
+        // Mover o jogador se o movimento não foi cancelado
         if (!movimentoCancelado) {
             jogador.moverPara(divisaoDestino);
             System.out.println("➡️  " + jogador.getNome() + " avança para: " + divisaoDestino.getNome());
-
-            // Notificar observers do movimento
-            notifyMovimento(jogador, divisaoAtual, divisaoDestino);
         }
 
-        // 6. Verificar condição de vitória
-        if (jogador.getPosicaoAtual().getTipo().equals(Divisao.TIPO_CENTRO)) {
+        // Atualizar estatísticas após movimento
+        estatisticas.atualizarEstatisticas(jogadores, turnManager.getContadorTurnos());
+
+        // Verificar se o jogador atingiu o centro (condição de vitória)
+        if (jogador.getPosicaoAtual().getTipoEnum() == TipoDivisao.CENTRO) {
             jogoTerminado = true;
             vencedor = jogador;
-            estadoAtual = EstadoJogo.TERMINADO;
-
-            // Notificar observers do fim do jogo
-            notifyJogoTerminado();
+            estatisticas.mostrarVitoria(vencedor);
+            return;
         }
 
-        // 7. Processar jogadas extra
-        turnManager.adicionarJogadaExtra(jogador);
+        // Processar jogadas extra - dar um novo turno completo ao jogador
+        if (jogador.getJogadasExtra() > 0 && !jogoTerminado) {
+            jogador.adicionarJogadasExtra(-1);
+            System.out.println("\n🎯 " + jogador.getNome() + " usa a jogada extra!");
+            processarTurno(jogador);
+        }
     }
-
-
-
 
     /**
      * Gera o relatório final da partida em formato JSON.
-     * Inclui o percurso completo de cada jogador, obstáculos enfrentados,
-     * enigmas resolvidos e efeitos aplicados.
+     * O relatório inclui informações detalhadas sobre cada jogador,
+     * incluindo o percurso realizado, obstáculos ultrapassados e efeitos aplicados.
      */
     private void gerarRelatorioFinal() {
         System.out.println("\n╔══════════════════════════════════════════════════════╗");
-        System.out.println("║           📝 GERANDO RELATÓRIO DA PARTIDA            ║");
+        System.out.println("║           📝 A GERAR RELATÓRIO DA PARTIDA            ║");
         System.out.println("╚══════════════════════════════════════════════════════╝");
 
-        // Registrar fim da partida
+        // Registar o fim da partida
         relatorio.registrarFim(vencedor, turnManager.getContadorTurnos());
 
-        // Adicionar dados de cada jogador
+        // Adicionar os dados de cada jogador ao relatório
         java.util.Iterator<Jogador> it = turnManager.getTodosJogadores().iterator();
         while (it.hasNext()) {
             relatorio.adicionarJogador(it.next());
         }
 
-        // Gerar nome do arquivo com timestamp
+        // Gerar o nome do ficheiro com a data e hora atuais
         java.time.LocalDateTime agora = java.time.LocalDateTime.now();
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-        String nomeArquivo = "relatorio_partida_" + agora.format(formatter);
+        String nomeFicheiro = "relatório_partida_" + agora.format(formatter);
 
-        // Gerar arquivo JSON
-        boolean sucesso = relatorio.gerarArquivoJSON(nomeArquivo);
+        // Gerar o ficheiro JSON
+        boolean sucesso = relatorio.gerarArquivoJSON(nomeFicheiro);
 
         if (sucesso) {
             System.out.println("\n📊 RESUMO DO RELATÓRIO:");
             System.out.println("   - Vencedor: " + vencedor.getNome());
             System.out.println("   - Total de turnos: " + turnManager.getContadorTurnos());
-            System.out.println("   - Jogadores registrados: " + turnManager.getTodosJogadores().size());
-            System.out.println("\n💾 O relatório detalhado foi salvo em formato JSON!");
+            System.out.println("   - Jogadores registados: " + turnManager.getTodosJogadores().size());
+            System.out.println("\n💾 O relatório detalhado foi guardado em formato JSON!");
         }
     }
 }

@@ -1,5 +1,3 @@
-// Pacote: Eventos
-
 package Eventos;
 
 import Structures.ArrayUnorderedList;
@@ -7,33 +5,45 @@ import java.util.Iterator;
 import java.util.Random;
 
 /**
- * Implementa o Desafio de Enigma, usando questões selecionadas de forma aleatória.
- *
- * Estrutura de dados otimizada: A ArrayUnorderedList original é usada para
- * acesso aleatório O(1) (implícito, se o ArrayUnorderedList for baseado em array).
+ * Implementação de um desafio de enigma.
+ * O jogador deve responder corretamente a uma pergunta para desbloquear a passagem.
+ * As questões são selecionadas aleatoriamente e só repetem quando todas
+ * as questões disponíveis já tiverem sido utilizadas.
  *
  * @author Grupo ED
- * @version 2.1 (Com seleção aleatória)
+ * @version 1.0
  */
 public class DesafioEnigma implements Desafio {
+
+    /** Indica se o desafio foi completado */
     private boolean completo;
-    private final ArrayUnorderedList<QuestaoEnigma> todasQuestoes; // Armazena todas as questões
+
+    /** Lista com todas as questões disponíveis */
+    private final ArrayUnorderedList<QuestaoEnigma> todasQuestoes;
+
+    /** Lista de questões ainda não utilizadas */
+    private ArrayUnorderedList<QuestaoEnigma> questoesDisponiveis;
+
+    /** A questão atualmente apresentada */
     private QuestaoEnigma questaoAtual;
-    private final Random randomGenerator; // Gerador de números aleatórios
+
+    /** Gerador de números aleatórios */
+    private final Random randomGenerator;
 
     /**
-     * Construtor do DesafioEnigma.
+     * Construtor do desafio de enigma.
      *
-     * @param questoes A lista inicial de todas as questões carregadas (e.g., do JSON).
+     * @param questoes A lista de todas as questões disponíveis
      */
     public DesafioEnigma(ArrayUnorderedList<QuestaoEnigma> questoes) {
         this.completo = false;
-        this.todasQuestoes = questoes; // Guardar a lista completa
+        this.todasQuestoes = questoes;
         this.randomGenerator = new Random();
 
-        // Se a lista estiver vazia, não há questão para selecionar, mas a lógica
-        // de seleção de nova questão será executada se for necessário.
-        if (todasQuestoes.size() > 0) {
+        // Inicializar a lista de questões disponíveis
+        this.questoesDisponiveis = copiarQuestoes(todasQuestoes);
+
+        if (!todasQuestoes.isEmpty()) {
             selecionarNovaQuestao();
         } else {
             this.questaoAtual = null;
@@ -41,53 +51,92 @@ public class DesafioEnigma implements Desafio {
     }
 
     /**
-     * Seleciona a próxima questão de forma **aleatória** da lista de todas as questões.
-     * Operação O(1) (assumindo ArrayUnorderedList usa array ou ArrayList por baixo).
+     * Cria uma cópia da lista de questões.
+     *
+     * @param original A lista original
+     * @return Uma nova lista com as mesmas questões
+     */
+    private ArrayUnorderedList<QuestaoEnigma> copiarQuestoes(ArrayUnorderedList<QuestaoEnigma> original) {
+        ArrayUnorderedList<QuestaoEnigma> copia = new ArrayUnorderedList<>();
+        Iterator<QuestaoEnigma> it = original.iterator();
+        while (it.hasNext()) {
+            copia.addToRear(it.next());
+        }
+        return copia;
+    }
+
+    /**
+     * Seleciona uma nova questão aleatoriamente.
+     * Quando todas as questões foram utilizadas, recicla a lista completa.
      */
     private void selecionarNovaQuestao() {
-        if (todasQuestoes.size() > 0) {
-            // Gerar um índice aleatório entre 0 (inclusive) e o tamanho da lista (exclusive)
-            int indiceAleatorio = randomGenerator.nextInt(todasQuestoes.size());
+        // Reciclar se não houver questões disponíveis
+        if (questoesDisponiveis.isEmpty()) {
+            questoesDisponiveis = copiarQuestoes(todasQuestoes);
+        }
 
-            // Acesso à questão pelo índice. Se a ArrayUnorderedList for como um ArrayList,
-            // esta é a forma mais eficiente de acesso aleatório.
-            this.questaoAtual = todasQuestoes.get(indiceAleatorio);
+        if (!questoesDisponiveis.isEmpty()) {
+            // Selecionar índice aleatório
+            int indiceAleatorio = randomGenerator.nextInt(questoesDisponiveis.size());
+
+            // Obter a questão
+            this.questaoAtual = questoesDisponiveis.get(indiceAleatorio);
+
+            // Remover da lista de disponíveis
+            try {
+                questoesDisponiveis.remove(questaoAtual);
+            } catch (Exception e) {
+                // Questão já foi removida ou não existe - continuar normalmente
+                System.err.println("Aviso: Não foi possível remover questão da lista: " + e.getMessage());
+            }
         } else {
             this.questaoAtual = null;
         }
     }
 
+    /**
+     * Tenta resolver o enigma com a resposta fornecida.
+     *
+     * @param input A resposta do jogador
+     * @return true se a resposta está correta, false caso contrário
+     */
     @Override
     public boolean tentarResolucao(String input) {
         if (completo) return true;
 
         if (questaoAtual != null && questaoAtual.verificarResposta(input)) {
-            this.completo = true; // Desafio resolvido
+            this.completo = true;
             return true;
         } else {
-            // Resposta errada: **selecionar uma nova questão aleatória** para a próxima tentativa.
-            // Se o jogador falhar, ele deve enfrentar um enigma diferente (aleatório).
+            // Resposta errada: selecionar nova questão
             selecionarNovaQuestao();
             return false;
         }
     }
 
+    /**
+     * Verifica se o desafio foi completado.
+     *
+     * @return true se o enigma foi resolvido
+     */
     @Override
     public boolean estaCompleto() {
         return completo;
     }
 
+    /**
+     * Obtém a descrição do desafio com a questão atual.
+     *
+     * @return A descrição formatada do enigma
+     */
     @Override
     public String getDescricao() {
         if (completo) {
             return "O Enigma foi resolvido. A passagem está livre.";
         } else if (questaoAtual != null) {
-            return "Desafio de Enigma. Responda corretamente para continuar:\n" + questaoAtual.toString();
+            return "Desafio de Enigma. Responda corretamente para continuar:\n" + questaoAtual;
         } else {
             return "Desafio de Enigma sem questões disponíveis.";
         }
     }
-
-    // NOTA: É necessário garantir que a sua implementação de ArrayUnorderedList
-    // tenha um método `get(int index)` ou similar para aceder ao elemento pelo índice.
 }

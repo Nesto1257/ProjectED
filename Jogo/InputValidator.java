@@ -4,25 +4,25 @@ import java.util.Scanner;
 
 /**
  * Classe utilitária para validação e obtenção de inputs do utilizador.
+ * Centraliza toda a lógica de leitura e validação de dados introduzidos
+ * através da consola.
  *
- * Benefícios OOP:
- * - Single Responsibility Principle: só trata de inputs
- * - Reutilização: pode ser usado em várias partes do código
- * - Encapsulação: lógica de validação centralizada
- * - Facilita testes: pode ser mockado facilmente
+ * Esta classe implementa o padrão Singleton para o Scanner, garantindo
+ * que apenas uma instância é utilizada em toda a aplicação.
  *
  * @author Grupo ED
  * @version 1.0
  */
 public class InputValidator {
 
+    /** Instância única do Scanner (Singleton) */
     private static Scanner scanner;
 
     /**
-     * Obtém a instância do Scanner (Singleton pattern para Scanner).
-     * Evita criar múltiplos scanners para System.in.
+     * Obtém a instância partilhada do Scanner.
+     * Se ainda não existir, cria uma instância.
      *
-     * @return Scanner partilhado
+     * @return A instância do Scanner
      */
     public static Scanner getScanner() {
         if (scanner == null) {
@@ -32,13 +32,13 @@ public class InputValidator {
     }
 
     /**
-     * Solicita um número inteiro dentro de um intervalo.
-     * Repete até obter entrada válida.
+     * Solicita ao utilizador um número inteiro dentro de um intervalo específico.
+     * Repete o pedido até que uma entrada válida seja fornecida.
      *
-     * @param mensagem Mensagem a mostrar ao utilizador
-     * @param min Valor mínimo permitido (inclusive)
-     * @param max Valor máximo permitido (inclusive)
-     * @return O número inteiro válido
+     * @param mensagem A mensagem a apresentar ao utilizador
+     * @param min O valor mínimo permitido (inclusivo)
+     * @param max O valor máximo permitido (inclusivo)
+     * @return O número inteiro válido introduzido pelo utilizador
      */
     public static int lerInteiro(String mensagem, int min, int max) {
         Scanner sc = getScanner();
@@ -48,75 +48,34 @@ public class InputValidator {
             System.out.print(mensagem);
             try {
                 valor = sc.nextInt();
+                sc.nextLine(); // Limpar o buffer após ler o inteiro
                 if (valor >= min && valor <= max) {
                     return valor;
                 }
                 System.out.println("⚠️ Escolha inválida! Digite um número entre " + min + " e " + max + ".");
             } catch (Exception e) {
                 System.out.println("⚠️ Entrada inválida! Digite um número.");
-                sc.nextLine(); // Limpar buffer
+                sc.nextLine();
             }
         }
     }
 
     /**
-     * Solicita uma string não vazia.
+     * Lê a próxima linha de texto do input.
+     * Aguarda que o utilizador introduza texto e pressione Enter.
      *
-     * @param mensagem Mensagem a mostrar ao utilizador
-     * @return A string inserida (não vazia)
-     */
-    public static String lerString(String mensagem) {
-        Scanner sc = getScanner();
-        String input;
-
-        while (true) {
-            System.out.print(mensagem);
-            input = sc.nextLine().trim();
-            if (!input.isEmpty()) {
-                return input;
-            }
-            System.out.println("⚠️ A entrada não pode estar vazia!");
-        }
-    }
-
-    /**
-     * Solicita uma resposta sim/não.
-     *
-     * @param mensagem Mensagem a mostrar ao utilizador
-     * @return true para sim, false para não
-     */
-    public static boolean lerSimNao(String mensagem) {
-        Scanner sc = getScanner();
-
-        while (true) {
-            System.out.print(mensagem + " (s/n): ");
-            String input = sc.nextLine().trim().toLowerCase();
-            if (input.equals("s") || input.equals("sim")) {
-                return true;
-            } else if (input.equals("n") || input.equals("nao") || input.equals("não")) {
-                return false;
-            }
-            System.out.println("⚠️ Responda com 's' ou 'n'.");
-        }
-    }
-
-    /**
-     * Lê a próxima linha do input.
-     *
-     * @return A linha lida
+     * @return A linha de texto introduzida pelo utilizador
      */
     public static String lerLinha() {
-        return getScanner().nextLine();
-    }
+        Scanner sc = getScanner();
+        String linha = sc.nextLine();
 
-    /**
-     * Fecha o scanner. Deve ser chamado apenas no final do programa.
-     */
-    public static void fechar() {
-        if (scanner != null) {
-            scanner.close();
-            scanner = null;
+        // Se a linha estiver vazia, aguardar nova entrada
+        while (linha.trim().isEmpty()) {
+            linha = sc.nextLine();
         }
+
+        return linha;
     }
 }
 

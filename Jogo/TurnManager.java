@@ -5,28 +5,45 @@ import Structures.ArrayUnorderedList;
 import Exceptions.EmptyCollectionException;
 
 /**
- * Gestão de turnos dos jogadores usando uma fila circular.
- * Responsável por controlar a ordem de jogada e turnos impedidos.
+ * Gestor de turnos dos jogadores no jogo Labirinto da Glória.
+ * Utiliza uma fila circular para gerir a ordem de jogada, garantindo
+ * que cada jogador joga na sua vez e que a sequência se repete.
+ *
+ * Responsabilidades:
+ * <ul>
+ *   <li>Manter a ordem de jogada dos participantes</li>
+ *   <li>Gerir jogadores impedidos de jogar</li>
+ *   <li>Processar jogadas extra</li>
+ *   <li>Contabilizar o número total de turnos</li>
+ * </ul>
  *
  * @author Grupo ED
- * @version 2.0
+ * @version 1.0
  */
 public class TurnManager {
+
+    /** Fila circular que mantém a ordem dos turnos */
     private CircularArrayQueue<Jogador> filaTurnos;
+
+    /** Lista de todos os jogadores participantes */
     private ArrayUnorderedList<Jogador> todosJogadores;
+
+    /** Contador de turnos jogados */
     private int contadorTurnos;
 
     /**
      * Construtor do gestor de turnos.
+     * Inicializa a fila circular com todos os jogadores pela ordem
+     * em que foram adicionados à lista.
      *
-     * @param jogadores Lista de jogadores participantes
+     * @param jogadores A lista de jogadores participantes
      */
     public TurnManager(ArrayUnorderedList<Jogador> jogadores) {
         this.todosJogadores = jogadores;
         this.filaTurnos = new CircularArrayQueue<>();
         this.contadorTurnos = 0;
 
-        // Inicializar fila circular com todos os jogadores
+        // Adicionar todos os jogadores à fila circular
         java.util.Iterator<Jogador> it = jogadores.iterator();
         while (it.hasNext()) {
             filaTurnos.enqueue(it.next());
@@ -34,9 +51,11 @@ public class TurnManager {
     }
 
     /**
-     * Obtém o próximo jogador da fila e reenfileira-o no final.
+     * Obtém o próximo jogador da fila de turnos.
+     * O jogador é removido do início da fila e colocado no final,
+     * garantindo a rotação circular.
      *
-     * @return O jogador do turno atual, ou null se a fila estiver vazia
+     * @return O jogador do turno actual, ou null se a fila estiver vazia
      */
     public Jogador obterProximoJogador() {
         try {
@@ -51,8 +70,9 @@ public class TurnManager {
     }
 
     /**
-     * Verifica se o jogador está impedido de jogar.
-     * Se estiver impedido, decrementa o contador e retorna true.
+     * Verifica e processa o impedimento de um jogador.
+     * Se o jogador estiver impedido, decrementa o contador de turnos
+     * de impedimento e não permite que jogue.
      *
      * @param jogador O jogador a verificar
      * @return true se o jogador está impedido, false caso contrário
@@ -66,21 +86,10 @@ public class TurnManager {
         return false;
     }
 
-    /**
-     * Adiciona o jogador novamente à fila para uma jogada extra.
-     *
-     * @param jogador O jogador que ganhou jogada extra
-     */
-    public void adicionarJogadaExtra(Jogador jogador) {
-        if (jogador.getJogadasExtra() > 0) {
-            System.out.println("→ " + jogador.getNome() + " ganhou uma jogada extra!");
-            jogador.adicionarJogadasExtra(-1); // Consome 1 jogada extra
-            filaTurnos.enqueue(jogador);
-        }
-    }
 
     /**
-     * Exibe o cabeçalho do turno atual.
+     * Apresenta o cabeçalho visual do turno atual.
+     * Mostra o nome do jogador e a sua posição atual no labirinto.
      *
      * @param jogador O jogador do turno atual
      */
@@ -92,14 +101,18 @@ public class TurnManager {
     }
 
     /**
-     * @return O contador total de turnos jogados
+     * Obtém o número total de turnos jogados.
+     *
+     * @return O contador de turnos
      */
     public int getContadorTurnos() {
         return contadorTurnos;
     }
 
     /**
-     * @return A lista de todos os jogadores
+     * Obtém a lista de todos os jogadores.
+     *
+     * @return A lista de jogadores participantes
      */
     public ArrayUnorderedList<Jogador> getTodosJogadores() {
         return todosJogadores;

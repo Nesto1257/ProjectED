@@ -11,22 +11,38 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Classe responsável por gerar o relatório final da partida em formato JSON.
- * Registra o percurso completo de cada jogador, obstáculos enfrentados,
- * enigmas resolvidos e efeitos aplicados durante o jogo.
+ * Regista informações detalhadas sobre o jogo, incluindo:
+ * <ul>
+ *   <li>Data e hora de início e fim</li>
+ *   <li>Jogador vencedor</li>
+ *   <li>Percurso de cada jogador</li>
+ *   <li>Obstáculos ultrapassados</li>
+ *   <li>Efeitos de eventos aplicados</li>
+ * </ul>
  *
  * @author Grupo ED
  * @version 1.0
  */
 public class RelatorioPartida {
 
+    /** Data e hora de início da partida */
     private String dataHoraInicio;
+
+    /** Data e hora de fim da partida */
     private String dataHoraFim;
+
+    /** Nome do jogador vencedor */
     private String nomeVencedor;
+
+    /** Lista de relatórios individuais de cada jogador */
     private ArrayUnorderedList<RelatorioJogador> jogadores;
+
+    /** Número total de turnos jogados */
     private int totalTurnos;
 
     /**
      * Construtor do relatório de partida.
+     * Inicializa a data de início e prepara a lista de jogadores.
      */
     public RelatorioPartida() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -36,7 +52,7 @@ public class RelatorioPartida {
     }
 
     /**
-     * Registra o início da partida.
+     * Regista a data e hora de início da partida.
      */
     public void registrarInicio() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -44,9 +60,10 @@ public class RelatorioPartida {
     }
 
     /**
-     * Registra o fim da partida.
-     * @param vencedor O jogador vencedor
-     * @param turnos Total de turnos jogados
+     * Regista o fim da partida com as informações finais.
+     *
+     * @param vencedor O jogador que venceu a partida
+     * @param turnos O número total de turnos jogados
      */
     public void registrarFim(Jogador vencedor, int turnos) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -56,8 +73,11 @@ public class RelatorioPartida {
     }
 
     /**
-     * Adiciona o relatório de um jogador.
-     * @param jogador O jogador a ser registrado
+     * Adiciona os dados de um jogador ao relatório.
+     * Recolhe todas as informações sobre o percurso, obstáculos
+     * e efeitos aplicados ao jogador.
+     *
+     * @param jogador O jogador cujos dados serão adicionados
      */
     public void adicionarJogador(Jogador jogador) {
         RelatorioJogador relJogador = new RelatorioJogador();
@@ -65,7 +85,7 @@ public class RelatorioPartida {
         relJogador.posicaoFinal = jogador.getPosicaoAtual().getNome();
         relJogador.totalMovimentos = jogador.getTotalMovimentos();
 
-        // Converter divisões visitadas
+        // Converter a lista de divisões visitadas
         relJogador.divisoesVisitadas = new String[jogador.getDivisoesVisitadas().size()];
         java.util.Iterator<Divisao> itDiv = jogador.getDivisoesVisitadas().iterator();
         int idx = 0;
@@ -73,7 +93,7 @@ public class RelatorioPartida {
             relJogador.divisoesVisitadas[idx++] = itDiv.next().getNome();
         }
 
-        // Converter obstáculos ultrapassados
+        // Converter a lista de obstáculos ultrapassados
         relJogador.obstaculosUltrapassados = new String[jogador.getObstaculosUltrapassados().size()];
         java.util.Iterator<String> itObs = jogador.getObstaculosUltrapassados().iterator();
         idx = 0;
@@ -81,7 +101,7 @@ public class RelatorioPartida {
             relJogador.obstaculosUltrapassados[idx++] = itObs.next();
         }
 
-        // Converter efeitos aplicados
+        // Converter a lista de efeitos aplicados
         relJogador.efeitosAplicados = new String[jogador.getEfeitosAplicados().size()];
         java.util.Iterator<String> itEf = jogador.getEfeitosAplicados().iterator();
         idx = 0;
@@ -93,20 +113,22 @@ public class RelatorioPartida {
     }
 
     /**
-     * Gera o arquivo JSON com o relatório completo da partida.
-     * @param nomeArquivo Nome do arquivo a ser gerado (sem extensão)
-     * @return true se o arquivo foi gerado com sucesso, false caso contrário
+     * Gera o ficheiro JSON com o relatório completo da partida.
+     * O ficheiro é criado com formatação legível (pretty print).
+     *
+     * @param nomeFicheiro O nome do ficheiro a criar (sem extensão)
+     * @return true se o ficheiro foi criado com sucesso, false caso contrário
      */
-    public boolean gerarArquivoJSON(String nomeArquivo) {
+    public boolean gerarArquivoJSON(String nomeFicheiro) {
         try {
-            // Converter para estrutura serializável
+            // Converter para a estrutura serializável
             RelatorioParaJSON relatorio = new RelatorioParaJSON();
             relatorio.dataHoraInicio = this.dataHoraInicio;
             relatorio.dataHoraFim = this.dataHoraFim;
             relatorio.vencedor = this.nomeVencedor;
             relatorio.totalTurnos = this.totalTurnos;
 
-            // Converter jogadores
+            // Converter a lista de jogadores
             relatorio.jogadores = new RelatorioJogador[jogadores.size()];
             java.util.Iterator<RelatorioJogador> it = jogadores.iterator();
             int idx = 0;
@@ -114,18 +136,18 @@ public class RelatorioPartida {
                 relatorio.jogadores[idx++] = it.next();
             }
 
-            // Gerar JSON com formatação bonita
+            // Gerar o JSON com formatação
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             String json = gson.toJson(relatorio);
 
-            // Salvar arquivo
-            String caminhoCompleto = nomeArquivo.endsWith(".json") ? nomeArquivo : nomeArquivo + ".json";
+            // Guardar o ficheiro
+            String caminhoCompleto = nomeFicheiro.endsWith(".json") ? nomeFicheiro : nomeFicheiro + ".json";
             FileWriter writer = new FileWriter(caminhoCompleto);
             writer.write(json);
             writer.close();
 
             System.out.println("\n✅ Relatório da partida gerado com sucesso!");
-            System.out.println("📄 Arquivo: " + caminhoCompleto);
+            System.out.println("📄 Ficheiro: " + caminhoCompleto);
 
             return true;
 
@@ -136,7 +158,7 @@ public class RelatorioPartida {
     }
 
     /**
-     * Classe interna para representar os dados de um jogador no relatório.
+     * Classe interna que representa os dados de um jogador no relatório.
      */
     private static class RelatorioJogador {
         String nome;
@@ -148,7 +170,7 @@ public class RelatorioPartida {
     }
 
     /**
-     * Classe interna para estrutura JSON final.
+     * Classe interna que define a estrutura JSON final do relatório.
      */
     private static class RelatorioParaJSON {
         String dataHoraInicio;

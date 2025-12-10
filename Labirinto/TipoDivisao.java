@@ -1,51 +1,64 @@
 package Labirinto;
 
 /**
- * Enum que representa os tipos possíveis de divisão no labirinto.
- *
- * Benefícios OOP:
- * - Type safety: impossível usar valores inválidos
- * - Encapsulação: comportamentos específicos por tipo
- * - Extensibilidade: fácil adicionar novos tipos
+ * Enumeração que define os tipos possíveis de divisões no labirinto.
+ * Cada tipo representa uma função específica dentro do jogo.
+ * Tipos disponíveis:
+ * <ul>
+ *   <li>ENTRADA - Pontos de início dos jogadores</li>
+ *   <li>CENTRO - Localização do tesouro (objetivo)</li>
+ *   <li>ALAVANCA - Divisão com desafio de alavanca</li>
+ *   <li>ENIGMA - Divisão com desafio de enigma</li>
+ *   <li>SIMPLES - Divisão sem obstáculos</li>
+ * </ul>
  *
  * @author Grupo ED
  * @version 1.0
  */
 public enum TipoDivisao {
-    ENTRADA("Entrada", "🚪", false),
-    CENTRO("Centro", "🏆", false),
-    ALAVANCA("Alavanca", "🔧", true),
-    ENIGMA("Enigma", "❓", true),
-    SIMPLES("Simples", "🚶", false);
 
+    /** Ponto de entrada para os jogadores */
+    ENTRADA("Entrada"),
+
+    /** Centro do labirinto onde está o tesouro */
+    CENTRO("Centro"),
+
+    /** Divisão com desafio de alavanca */
+    ALAVANCA("Alavanca"),
+
+    /** Divisão com desafio de enigma */
+    ENIGMA("Enigma"),
+
+    /** Divisão simples sem obstáculos */
+    SIMPLES("Simples");
+
+    /** Nome legível do tipo */
     private final String nome;
-    private final String icone;
-    private final boolean temDesafio;
 
-    TipoDivisao(String nome, String icone, boolean temDesafio) {
+    /**
+     * Construtor do enum.
+     *
+     * @param nome O nome legível do tipo
+     */
+    TipoDivisao(String nome) {
         this.nome = nome;
-        this.icone = icone;
-        this.temDesafio = temDesafio;
     }
 
+    /**
+     * Obtém o nome legível do tipo.
+     *
+     * @return O nome do tipo
+     */
     public String getNome() {
         return nome;
     }
 
-    public String getIcone() {
-        return icone;
-    }
-
-    public boolean temDesafio() {
-        return temDesafio;
-    }
-
     /**
-     * Converte uma string para o enum correspondente.
-     * Mantém compatibilidade com código existente que usa strings.
+     * Converte uma String para o enum correspondente.
+     * Útil para manter compatibilidade com o carregamento de ficheiros JSON.
      *
-     * @param tipo String representando o tipo
-     * @return TipoDivisao correspondente ou SIMPLES se não encontrado
+     * @param tipo A String representando o tipo
+     * @return O TipoDivisao correspondente, ou SIMPLES se não encontrado
      */
     public static TipoDivisao fromString(String tipo) {
         if (tipo == null) return SIMPLES;
@@ -64,6 +77,11 @@ public enum TipoDivisao {
         }
     }
 
+    /**
+     * Devolve a representação textual do tipo.
+     *
+     * @return O nome do tipo
+     */
     @Override
     public String toString() {
         return nome;

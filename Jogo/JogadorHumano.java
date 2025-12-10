@@ -5,23 +5,24 @@ import Labirinto.Labirinto;
 import Structures.ArrayUnorderedList;
 
 /**
- * Implementa um Jogador controlado por input humano (Modo Manual).
- * Esta classe permite que um utilizador real jogue o jogo através de
- * inputs via console, escolhendo o próximo movimento entre as divisões disponíveis.
+ * Representa um jogador controlado por um utilizador humano.
+ * Esta classe implementa o modo manual do jogo, permitindo que o utilizador
+ * escolha os movimentos através de input na consola.
  *
- * Refatorado para usar InputValidator (Utility Class - SRP).
+ * O jogador humano visualiza as opções disponíveis e seleciona
+ * a divisão para onde pretende mover-se.
  *
  * @author Grupo ED
- * @version 1.1 - Refatorado com InputValidator
+ * @version 1.0
  */
 public class JogadorHumano extends Jogador {
 
     /**
-     * Construtor do JogadorHumano.
-     * Inicializa o jogador humano com um nome e posição inicial.
+     * Construtor do jogador humano.
+     * Cria um jogador controlado por um utilizador.
      *
      * @param nome O nome do jogador
-     * @param pontoInicial A divisão inicial onde o jogador começa
+     * @param pontoInicial A divisão onde o jogador inicia o jogo
      */
     public JogadorHumano(String nome, Divisao pontoInicial) {
         super(nome, pontoInicial);
@@ -29,19 +30,15 @@ public class JogadorHumano extends Jogador {
 
     /**
      * Solicita ao utilizador que escolha o próximo movimento.
-     * Apresenta uma lista numerada de divisões adjacentes disponíveis
-     * e aguarda o input do utilizador para selecionar uma delas.
+     * Apresenta uma lista numerada com todas as divisões adjacentes
+     * disponíveis e aguarda a seleção do utilizador.
      *
-     * @param labirinto O labirinto onde o jogador se encontra
-     * @return A Divisao escolhida pelo utilizador, ou null se não houver vizinhos disponíveis
+     * @param labirinto O labirinto onde o jogo decorre
+     * @return A divisão escolhida pelo utilizador, ou null se não houver saídas
      */
     @Override
     public Divisao escolherMovimento(Labirinto labirinto) {
-//        System.out.println("\n====================================");
-//        System.out.println("Turno de " + getNome());
-//        System.out.println("Posição atual: " + getPosicaoAtual().getNome());
-//        System.out.println("====================================");
-
+        // Obter as divisões vizinhas da posição atual
         ArrayUnorderedList<Divisao> vizinhos = labirinto.getVizinhos(getPosicaoAtual());
 
         if (vizinhos.isEmpty()) {
@@ -49,29 +46,39 @@ public class JogadorHumano extends Jogador {
             return null;
         }
 
-        // Mostrar opções disponíveis
+        // Apresentar as opções disponíveis (excluindo a posição atual)
         System.out.println("\nEscolha o seu próximo movimento:");
         int opcao = 1;
 
-        // Criar um array temporário para mapear opções
+        // Criar uma lista para mapear as opções (filtrando a divisão atual)
         ArrayUnorderedList<Divisao> opcoes = new ArrayUnorderedList<>();
+        Divisao posicaoAtual = getPosicaoAtual();
 
         java.util.Iterator<Divisao> it = vizinhos.iterator();
         while (it.hasNext()) {
             Divisao divisao = it.next();
-            System.out.println(opcao + ". " + divisao.getNome() + " (" + divisao.getTipo() + ")");
-            opcoes.addToRear(divisao);
-            opcao++;
+            // Não mostrar a divisão onde o jogador já está
+            if (!divisao.equals(posicaoAtual)) {
+                System.out.println(opcao + ". " + divisao.getNome() + " (" + divisao.getTipo() + ")");
+                opcoes.addToRear(divisao);
+                opcao++;
+            }
         }
 
-        // Usar InputValidator para obter escolha válida
+        // Verificar se há opções disponíveis após filtrar
+        if (opcoes.isEmpty()) {
+            System.out.println("Não há saídas disponíveis! Está encurralado.");
+            return null;
+        }
+
+        // Obter a escolha válida do utilizador
         int escolha = InputValidator.lerInteiro(
             "\nDigite o número da sua escolha (1-" + (opcao - 1) + "): ",
             1,
             opcao - 1
         );
 
-        // Obter a divisão escolhida
+        // Encontrar e devolver a divisão escolhida
         int contador = 1;
         java.util.Iterator<Divisao> itEscolha = opcoes.iterator();
         while (itEscolha.hasNext()) {
